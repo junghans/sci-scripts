@@ -1,0 +1,66 @@
+#! /usr/bin/awk -f 
+BEGIN{
+	#Version check, use gawk only !
+	"awk --version" | getline version;
+	if ( version !~ /GNU Awk/)
+	{
+		print "#WARING: This is not gawk (GNU awk). Could cause problem!";
+	}
+	print "#This is max.awk 0.1 (20.08.07)";
+	if (ARGC>2)
+	{
+		print "#WARING: Average over multiple files!!";
+	}
+	if (ARGV[1]=="")
+	{
+		print "#FILE: STDIN";
+	}
+	else
+	{
+		print "#FILE:",ARGV[1];
+	}
+	if (col=="")
+	{
+		col=1;
+		print "#Setting column to",col,"(use option \"-v col=X\" to change)";
+	}
+	else
+	{
+		print "#Using column",col;
+	}
+	warn=0;
+	c=0;
+}
+
+/^#/{
+	next;
+}
+
+{
+	if (NF>=col)
+	{
+		c++;
+		if (max == "")
+		{
+			max=$col;
+		}
+		if (max < $col)
+		{
+			max=$col;
+		}
+	}
+	else
+	{
+		if (warn == 0)
+		{
+			print "# Not enough data in line",NR;
+			warn++;
+		}
+	}
+}
+
+END{
+	print "#Output type: max #values";
+	print max,c;
+}
+#fs md5sum 18f878f18b579e2a6a1423f615e4abec

@@ -1,0 +1,107 @@
+#! /usr/bin/awk -f
+BEGIN{
+	#Version check, use gawk only !
+	"awk --version" | getline version;
+	if ( version !~ /GNU Awk/)
+	{
+		print "#WARING: This is not gawk (GNU awk). Could cause problem!";
+	}
+	print "#This is avg_bs 0.1 (11.01.08)";
+	if (ARGC>2)
+	{
+		print "#WARING: Average over multiple files!!";
+	}
+	if (name=="")
+	{
+		if (ARGV[1]=="")
+		{
+			print "#FILE: STDIN";
+		}
+		else
+		{
+			print "#FILE:",ARGV[1];
+		}
+	}
+	else
+	{
+		print "#FILE:",name,"(set by user)";
+	}	
+	if (col=="")
+	{
+		col=1;
+		print "#Setting column to",col,"(use option \"-v col=X\" to change)";
+	}
+	else
+	{
+		print "#Using column",col,"(set by user)";
+	}
+	if (N_B=="")
+	{
+		N_B=200;
+		print "#Setting Number of blocks to",N_B,"(use option \"-v N_B=X\" to change)";
+	}
+	else
+	{
+		print "#Using ",N_B," blocks ";
+	}
+	if (seed=="")
+	{
+		print "#Using time as seed (use option \"-v seed=X\" to change)";
+		srand();
+	}
+	else
+	{
+		print "#Using ",seed," as seed";
+		srand(seed);
+	}
+	c=0;
+	warn=0;
+	sum=0;
+	sum2=0;
+}
+
+/^#/{
+	next;
+}
+
+{
+	if (NF>=col)
+	{
+		x[c]=$col;
+		c++;
+		sum+=$col;
+		sum2+=$col*$col;
+	}
+	else
+	{
+		if (warn == 0)
+		{
+			print "# Not enough data in line",NR;
+			warn++;
+		}
+	}	
+	
+}
+
+END{
+	avg=sum/c;
+	sum2=sum2/c;
+	se_n=(sum2-avg*avg)/c;
+	se_n=sqrt(se_n);
+	se_b=0;
+	for (b=0;b<N_B;b++){
+		sum=0;
+		for (i=0;i<c;i++){
+			nr=int(c*rand())
+			sum+=x[nr];
+		}
+		avg_b=sum/c;
+		se_b+=(avg_b-avg)*(avg_b-avg);
+		print b,avg,avg_b,se_b;
+	}
+	se_b=se_b/(N_B-1);
+	se_b=sqrt(se_b);
+	print "#Output format: avg se naiv_se values";
+	print avg,se_b,se_n,c;
+}
+#fs md5sum 68c568666ba62485a4a2f5f2ee0e5481

@@ -1,0 +1,112 @@
+#! /usr/bin/awk -f
+
+BEGIN{
+	#Version check, use gawk only !
+	"awk --version" | getline version;
+	if ( version !~ /GNU Awk/)
+	{
+		print "#WARING: This is not gawk (GNU awk). Could cause problem!";
+	}
+	print "#This is histogram.awk 0.4 (17.01.08)";
+	if (ARGC>2)
+	{
+		print "#WARING: Average over multiple files!!";
+	}
+	if (ARGV[1]=="")
+	{
+		print "#FILE: STDIN";
+	}
+	else
+	{
+		print "#FILE:",ARGV[1];
+	}
+	if (col=="")
+	{
+		col=1;
+		print "#Setting column to",col,"(use option \"-v col=X\" to change)";
+	}
+	else
+	{
+		print "#Using column",col;
+	}
+	if (bins=="")
+	{
+		bins=100;
+		print "#Setting bins to",bins,"(use option \"-v bins=X\" to change)";
+	}
+	else
+	{
+		print "#Using bins",bins;
+	}
+	c=0;
+	warn=0;
+}
+
+/^#/{
+	next;
+}
+
+{
+	if (NF>=col)
+	{
+		data[c]=$col;
+		if (min == "")
+		{
+			min=$col;
+		}
+		if (min > $col)
+		{
+			min=$col;
+		}
+		if (max == "")
+		{
+			max=$col;
+		}
+		if (max < $col)
+		{
+			max=$col;
+		}
+		c++;
+	}
+	else
+	{
+		if (warn == 0)
+		{
+			print "# Not enough data in line",NR;
+			warn++;
+		}
+	}
+}
+
+END{
+	bin_size=(max-min)/bins;
+	for (i=0;i<bins;i++)
+	{
+		histogramm[i]=0;
+	}
+	for (i=0;i<c;i++)
+	{
+		#this is for max data to not create extra bin!!!
+		if (data[i]==max)
+		{
+			histo_nr=bins-1;
+		}
+		else
+		{
+			#if data is EXACT on the border it counts to the higher bin!
+			histo_nr=int((data[i]-min)/bin_size);
+		}
+		histogramm[histo_nr]++;
+	}
+	print "#values=",c,"min=",min,"max=",max,"bin_size=",bin_size;
+        print "#Output format: rounded_value entree norm_ent low_border upper_border";
+	for (i=0;i<bins;i++)
+	{
+		norm_ent=histogramm[i]/c;
+		low_border=min+(bin_size*i);
+		upper_border=min+(bin_size*(i+1));
+		histo_value=(upper_border+low_border)/2.0;
+		print histo_value,histogramm[i],norm_ent,low_border,upper_border;
+	}
+}
+#fs md5sum 962376de599988fff0358f8c13164806

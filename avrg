@@ -1,0 +1,25 @@
+#! /usr/bin/perl
+use strict;
+
+die "Usage: avrg col-number file\n" if (@ARGV < 1);
+
+my $avrg = 0;
+my $cnt = 0;
+my $col = shift(@ARGV);
+
+my @tab;
+my $mean = 0;
+
+foreach (<>) {
+  if (m/^[@#]/) {
+      next;
+  }
+  s/^\s+//;
+  @tab = split /\s+/;
+  $mean += $tab[$col - 1];
+  $avrg++;
+}
+
+$mean /= $avrg;
+
+print "$mean\n";

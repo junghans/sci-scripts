@@ -1,0 +1,211 @@
+#! /bin/bash
+
+# (C) 2008 Chr. Junghans
+# junghans@mpip-mainz.mpg.de
+
+#version 0.1   ,04.07.08 -- initial version
+#version 0.1.1 ,10.07.08 -- fixed bug with empty lines
+#version 0.1.2 ,01.08.08 -- fixes bug with empty lines
+#version 0.1.3 ,25.09.08 -- fixes bug with short name of del
+
+#########Defaults
+files=""
+commandline=""
+print="no"
+emptyline='/^[[:space:]]*$/d'
+
+showhelp() {
+ cat << eoh
+Christoph's simple analysis
+The best of perl,sed and awk to make simple analysis to a file or stdin
+
+${0##*/} [OPTIONS] COMMAND FILES
+
+COMMANDS:
+
+print(p) NUMBERS print columns (use -- to perfom  filename begin with 0-9)
+del(d)   RANGE   delete a range of lines (e.g. 42 or 1,12 or /BEGIN/ or /BEGIN/,/END/
+delc(c)          Delete comments (same as "del /^#/")
+dele(e)          Delete empty lines (same as "csa m \$0")
+bgrep(b)  P1 P2  Grep what is between P1 and P2 (in every line)
+
+SIMPLE ANALYSIS (still commands)
+sum(s) NUMBERS  sum of the columns
+avg(a) NUMBERS  average (with standard error)
+ravg(r) NUMBER running average (with standard error)
+mod(m) FORMULAR modify (e.g \$1+\$2,  0.5*\$2)
+help             show this help
+
+OPTIONS:
+-f, --file      Give a file (maybe multiple)
+-r, --noremove  Don't remove empty lines
+-p, --print     Also print the commandline
+-v, --version   Prints version
+-h, --help      Show this help message
+eoh
+}
+
+shopt -s extglob
+
+while [ "${1#-}" != "$1" ]; do
+  if [ "${1#--}" = "$1" ] && [ -n "${1:2}" ]; then
+    if [ "${1#-[r]}" != "${1}" ]; then
+       set -- "${1:0:2}" "${1:2}" "${@:2}"
+    else
+       set -- "${1:0:2}" "-${1:2}" "${@:2}"
+    fi
+ fi
+ case $1 in
+  -f | --file )
+   if [ -r "$2" ]; then
+      files="$files $2"
+   else
+      echo Error: file \"$2\" not readable >&2
+      exit 1
+   fi
+   shift 2;;
+  -p | --print )
+   print="yes"
+   shift;;
+  -r | --noremove )
+   emptyline=''
+   shift;;
+  -v | --version)
+   echo ${0##*/}, $(sed -ne 's/^#\(version.*\) -- .*$/\1/p' $0 | sed -n '$p') by C. Junghans
+   exit 0;;
+  -h | --help)
+   showhelp
+   exit 0;;
+  *)
+   echo Unknown option \'$1\' >&2
+   exit 1;;
+ esac
+done
+
+if [ -z "$1" ]; then
+   echo No command given ! >&2
+   echo Help with ${0##*/} help >&2
+   exit 1
+fi
+
+echo "#This is $(${0##*/} -v)"
+
+case $1 in
+   p|print)
+      program="awk"
+      progstring="/^#/{print \$0;next}{print "
+      if [[ "$2" = +([0-9]) ]]; then
+         progstring="$progstring \$$2"
+         shift 2
+      else
+         echo Expected a number after \"print\" >&2
+         exit 1
+      fi
+      while (! [[ "$1" = "--" ]] ) && [[ "$1" = +([0-9]) ]] ; do
+         progstring="$progstring,\$$1"
+         shift
+      done
+      progstring="$progstring}"
+      [[ "$1" = "--" ]] && shift
+      ;;
+   d|del)
+      program="sed"
+      if [ -n "$2" ]; then
+         progstring="${2}d"
+         shift 2
+      else
+         echo Expected a pattern after \"del\" >&2
+         exit 1
+      fi
+      ;;
+   c|delc)
+      program="sed"
+      progstring="/^#/d"
+      shift ;;
+   e|dele)
+      #this is done anyway ;-)
+      program="tee"
+      progstring=""
+      shift ;;
+   b|bgrep)
+      program="perl -ne"
+      if [ -n "$2" ] && [ -n "$3" ]; then
+         progstring="print \"\$1\n\" if /$2(.*?)$3/"
+         shift 3
+      else
+         echo Expected two pattern after \"bgrep\" >&2
+         exit 1
+      fi
+      ;;
+   s|sum)
+      program="awk"
+      if [[ "$2" = +([0-9]) ]]; then
+         progstring="(\$$2!=\"\"){sum[$2]+=\$$2;c[$2]++}END{print c[$2],sum[$2]}"
+         shift 2
+      else
+         echo Expected a number after \"ravg\" >&2
+         exit 1
+      fi
+      echo "#Output format: # sum"
+      ;;
+   a|avg)
+      program="awk"
+      if [[ "$2" = +([0-9]) ]]; then
+         progstring="(\$$2!=\"\"){sum[$2]+=\$$2;sum2[$2]+=\$$2*\$$2;c[$2]++}END{print c[$2],sum[$2]/c[$2],sum2[$2]/c[$2]}"
+         shift 2
+      else
+         echo Expected a number after \"ravg\" >&2
+         exit 1
+      fi
+      echo "#Output format: # avg se"
+      ;;
+   r|ravg)
+      program="awk"
+      if [[ "$2" = +([0-9]) ]]; then
+         progstring="(\$$2!=\"\"){sum[$2]+=\$$2;sum2[$2]+=\$$2*\$$2;c[$2]++;print c,sum[$2]/c[$2],sum2[$2]/c[$2]}"
+         shift 2
+      else
+         echo Expected a number after \"ravg\" >&2
+         exit 1
+      fi
+      echo "#Output format: # ravg rse"
+      ;;
+   m|mod)
+      program="awk"
+      if [ -n "$2" ]; then
+         progstring="/^#/{print \$0;next}{print $2}"
+         shift 2
+      else
+         echo Expected a something after \"mod\" >&2
+         exit 1
+      fi
+      ;;
+   help)
+      showhelp ;;
+esac
+
+#rest should be files !
+while [ -n "$1" ]; do
+   if [ -r "$1" ]; then
+      files="$files $1"
+      shift
+   else
+      echo Error: file \"$1\" not readable >&2
+      exit 1
+   fi
+done
+
+if [ "$print" = "yes" ]; then
+  echo \#COMMAND: $program \"$progstring\"
+fi
+
+if [ -n "$files" ]; then
+  cat $files | $program "$progstring" | sed "$emptyline"
+else
+  while read -r; do
+    data="${data}${REPLY}\n"
+  done
+  #remove last \n 
+  data=${data%\\n}
+  echo -e $data | $program "$progstring" | sed "$emptyline"
+fi

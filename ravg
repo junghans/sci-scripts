@@ -1,0 +1,61 @@
+#! /usr/bin/awk -f 
+BEGIN{
+	#Version check, use gawk only !
+	"awk --version" | getline version;
+	if ( version !~ /GNU Awk/)
+	{
+		print "#WARING: This is not gawk (GNU awk). Could cause problem!";
+	}
+	print "#This is avg2 1.0 (10.03.08)";
+	if (ARGC>2)
+	{
+		print "#WARING: Average over multiple files!!";
+	}
+	if (ARGV[1]=="")
+	{
+		print "#FILE: STDIN";
+	}
+	else
+	{
+		print "#FILE:",ARGV[1];
+	}
+	if (col=="")
+	{
+		col=1;
+		print "#Setting column to",col,"(use option \"-v col=X\" to change)";
+	}
+	else
+	{
+		print "#Using column",col;
+	}
+	c=0;
+	warn=0;
+	sum=0;
+	sum2=0;
+	print "#Output type: avg se #values";
+}
+
+/^#/{
+	next;
+}
+
+{
+	if (NF>=col)
+	{
+		sum+=$col;
+		sum2+=$col*$col;
+		c++;
+		h1=sum/c;
+		h2=sum2/c;
+		h3=sqrt(h2-h1*h1);
+		print h1,h3
+	}
+	else
+	{
+		if (warn == 0)
+		{
+			print "# Not enough data in line",NR;
+			warn++;
+		}
+	}
+}

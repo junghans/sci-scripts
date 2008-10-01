@@ -1,0 +1,60 @@
+#!/usr/bin/awk -f
+
+BEGIN{
+	#Version check, use gawk only !
+	"awk --version" | getline version;
+	if ( version !~ /GNU Awk/)
+	{
+		print "#WARING: This is not gawk (GNU awk). Could cause problem!";
+	}
+	print "#This is gauss_chain.awk 0.04 (16.01.08) by CJ";
+	if (nr=="")
+	{
+		nr=100000;
+		print "#Setting nr to",nr,"(use option \"-v nr=X\" to change)";
+	}
+	else
+	{
+		print "#Using nr",nr;
+	}
+	if (tau=="")
+		if (rho=="")
+		{
+			rho=0.9;
+			tau=0.5*(1+rho)/(1-rho);
+			print "#Setting rho to",rho,"(use option \"-v rho=X\" to change) -> tau_int=",tau;
+		}
+		else
+		{
+			tau=0.5*(1+rho)/(1-rho);
+			print "#Using rho -> tau_int=",tau;
+		}
+	else
+	{
+		rho=(2*tau-1)/(2*tau+1);
+		tau=0.5*(1+rho)/(1-rho);
+		print "#Setting rho to",rho,"(use option \"-v rho=X\" to change) -> tau_int=",tau;
+	}
+	if (seed=="")
+	{
+		print "#Using time as seed (use option \"-v seed=X\" to change)";
+		srand();
+	}
+	else
+	{
+		print "#Using ",seed," as seed";
+		srand(seed);
+	}
+	e=0;
+	pi=3.1415926535;
+	print "#Output format: timeseries";
+	for (i=0;i<nr;i++)
+	{
+		r=sqrt(-2*log(1-rand()));
+		phi=2*pi*rand();
+		gauss_number=r*sin(phi);
+		e=rho*e+sqrt(1-rho*rho)*gauss_number;
+		print e;
+	}
+}
+#fs md5sum b64ee8a8e79ee9ed1e1e1c09d7b703c6
