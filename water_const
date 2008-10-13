@@ -4,6 +4,7 @@
 # junghans@mpip-mainz.mpg.de
 #
 #version 0.1, 03.09.08 -- intial
+#version 0.2, 13.10.08 -- bug fixed with mixing
 
 use strict;
 
@@ -61,6 +62,13 @@ END
       my $version=`perl -ne 'print "\$1\n" if /^#(version .*?) --/' $0 | perl -ne 'print if eof'`;
       chomp($version);
       print "$progname, $version  by C. Junghans\n";
+      exit;
+   }
+   elsif ($ARGV[0] eq "--hg")
+   {
+      my $message=`perl -ne 'print "\$1\n" if /^#version .*? -- (.*)\$/' $0 | perl -ne 'print if eof'`;
+      chomp($message);
+      print "$progname: $message\n";
       exit;
    }
    elsif (($ARGV[0] eq "-m") or ($ARGV[0] eq "--model"))
@@ -135,8 +143,8 @@ $c12{H}=4*$eps{H}*$sigma{H}**12;
 
 #mixing
 if ("$mixing" eq "C"){
-   $eps{OH}=0.5*($eps{O}+$eps{H});
-   $sigma{OH}=sqrt($sigma{O}*$sigma{H});
+   $eps{OH}=sqrt($eps{O}*$eps{H});
+   $sigma{OH}=0.5*($sigma{O}+$sigma{H});
    $c6{OH}=4*$eps{OH}*$sigma{OH}**6;
    $c12{OH}=4*$eps{OH}*$sigma{OH}**12;
 } elsif ("$mixing" eq "G"){
