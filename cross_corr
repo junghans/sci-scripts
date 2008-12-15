@@ -140,13 +140,6 @@ END{
 		#faster for long time serie, BUT mean has higher statistics -> bias
 		#cor_of_dt=(mixed_mean_dt-mean_data1*mean_data2)/cor_norm;
 		
-		if ((cor_of_dt < 0 ) && (neg==0))
-		{
-			#stop it!
-			#max_dt=dt;
-			max_dt=dt+10;
-			neg++;
-		}
 		int_cor+=cor_of_dt;
 		time=dt*timescale;
 		if ( cor_of_dt > 0)
@@ -161,7 +154,23 @@ END{
 		tau_int=int_cor-0.5;
 		print time,cor_of_dt,int_cor,log_cor,tau_int;
 		
+		#stop calc when:
+		#a) correlation is negative, ten more steps
+# 		if ((cor_of_dt < 0 ) && (neg==0))
+# 		{
+# 			#stop it!
+# 			#max_dt=dt;
+# 			max_dt=dt+10;
+# 			neg++;
+# 		}
+		#b) rule of thumb (janke): dt >= 6*tau_int 
+		if (dt >= 6*tau_int){
+			max_dt=dt;
+		}
+		#c) never
+		
 		#procent on stderr
+		#procent=dt/max_dt;
 # 		print "#",procent,"%"
 # 		if ( procent%10 == 0 )
 # 		{
@@ -169,4 +178,3 @@ END{
 # 		}
 	}
 }
-#fs md5sum fe9c1017a74a0fdeb595cf63495c3fc9
