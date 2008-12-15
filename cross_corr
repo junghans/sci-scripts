@@ -94,7 +94,7 @@ END{
 	cor_norm=mixed_mean-mean1_x_mean2;	
 	int_cor=0;
 	print "#values=",c,"mean1=",mean_data1,"mean2=",mean_data2,"mixed_mean=",mixed_mean,"norm=",cor_norm;
-	print "#Output format: dt cor_of_dt int_cor log(cor_of_dt) tau_int";
+	print "#Output format: dt cor_of_dt int_cor log(cor_of_dt) tau_int se_tau_int";
 	#not so important, will be reset anyway later
 	max_dt=c/10;
 	neg=0;
@@ -152,7 +152,8 @@ END{
 		}
 		#tau_int=0.5+sum k=1,inf A(K)=int_cor-0.5
 		tau_int=int_cor-0.5;
-		print time,cor_of_dt,int_cor,log_cor,tau_int;
+		se_tau_int=tau_int*sqrt(2*(2*dt+1)/c);
+		print time,cor_of_dt,int_cor,log_cor,tau_int,se_tau_int;
 		
 		#stop calc when:
 		#a) correlation is negative, ten more steps
@@ -170,7 +171,7 @@ END{
 		#c) never
 		
 		#procent on stderr
-		#procent=dt/max_dt;
+#		procent=dt/max_dt;
 # 		print "#",procent,"%"
 # 		if ( procent%10 == 0 )
 # 		{
