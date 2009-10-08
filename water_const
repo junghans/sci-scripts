@@ -21,7 +21,7 @@ my $mixing="C";
 my $kalorie=4.1868;
 my $PI=3.14159265358979323846;
 
-while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^\-/))
+while ((defined ($ARGV[0])) and ($ARGV[0] =~ /^-./)
 {
    if (($ARGV[0] !~ /^--/) and (length($ARGV[0])>2)){
       $_=shift(@ARGV);
