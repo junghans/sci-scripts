@@ -62,7 +62,7 @@ BEGIN{
 	mixed_mean=0;
 }
 
-/^#/{
+/^[@#]/{
 	next;
 }
 
