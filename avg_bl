@@ -48,7 +48,7 @@ BEGIN{
 	warn=0;
 }
 
-/^#/{
+/^[#@]/{
 	next;
 }
 
@@ -88,14 +88,14 @@ END{
 	se_b=0;
 	for (b=0;b<N_B;b++){
 		sum_b[b]=sum_b[b]/L_B;
-		#print b,sum,sum_b[b],se;
-		se_b+=(sum_b[b]-sum)*(sum_b[b]-sum);
+		print b,sum,se_n,sum_b[b],se_b;
+#		se_b+=(sum_b[b]-sum)*(sum_b[b]-sum);
 	}
 #	print se;
 	se_b=se_b/(N_B-1)/N_B;
-#	print se;
+#	print se_b;
 	se_b=sqrt(se_b);
+#	print se_b;
 	print "#Output format: avg se naiv_se values";
 	print sum,se_b,se_n,L_B*N_B,c;
 }
-#fs md5sum 70b20d26f0d494d9c1e919cdf0d76da9
