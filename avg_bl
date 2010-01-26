@@ -88,8 +88,8 @@ END{
 	se_b=0;
 	for (b=0;b<N_B;b++){
 		sum_b[b]=sum_b[b]/L_B;
-		print b,sum,se_n,sum_b[b],se_b;
-#		se_b+=(sum_b[b]-sum)*(sum_b[b]-sum);
+#		print b,sum,se_n,sum_b[b],se_b;
+		se_b+=(sum_b[b]-sum)*(sum_b[b]-sum);
 	}
 #	print se;
 	se_b=se_b/(N_B-1)/N_B;
