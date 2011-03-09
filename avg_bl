@@ -1,4 +1,5 @@
 #! /usr/bin/awk -f
+func isnum(x){return(x==x+0)}
 BEGIN{
 	#Version check, use gawk only !
 	"awk --version" | getline version;
@@ -53,7 +54,7 @@ BEGIN{
 }
 
 {
-	if (NF>=col)
+	if (NF>=col&& isnum($col))
 	{
 		x[c]=$col;
 		c++;
