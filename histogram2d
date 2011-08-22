@@ -1,0 +1,112 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+# To change this template, choose Tools | Templates
+# and open the template in the editor.
+
+from pylab import *;
+from numpy import *;
+from optparse import OptionParser;
+
+__author__="ruehle"
+__date__ ="$Jun 9, 2010 6:03:05 PM$"
+
+# some options parsing
+usage = "usage: %prog [options] filename"
+parser = OptionParser(usage)
+parser.add_option("--nx", dest="nx", type="int", help="x bins", default=100)
+parser.add_option("--ny", dest="ny", type="int", help="y bins", default=100)
+parser.add_option("--xlabel", dest="xlbl", type="string", help="label for x axis", default="x")
+parser.add_option("--ylabel", dest="ylbl", type="string", help="label for y axis", default="y")
+parser.add_option("--cols", dest="cols", type="string", help="use columns e.g. 1:2", default="1:2")
+parser.add_option("--gpout", dest="gpout", type="string", help="save data to use in gnuplot")
+parser.add_option("--noshow", action="store_false", dest="show", default=True, help="don't show the histogram")
+parser.add_option("--normalize", action="store_true", dest="normalize", default=False, help="Normalize the histogram")
+
+(options, args) = parser.parse_args()
+
+cols=options.cols.split(":")
+if(size(cols)!=2):
+  parser.error("wrong format in cols, use 1:2")
+
+if len(args) == 0:
+  parser.error("filename missing")
+
+# load the data, change this!
+data=loadtxt(args[0], usecols=(int(cols[0])-1, int(cols[1])-1));
+
+# number of points for 2d histogram
+nx=options.nx; ny=options.ny
+
+# bounds of histogram - do not touch
+xmin=min(data[:,0])
+xmax=max(data[:,0])
+
+ymin=min(data[:,1])
+ymax=max(data[:,1])
+
+ix = (xmax - xmin)
+iy = (ymax - ymin)
+
+dx = (xmax - xmin)/nx
+dy = (ymax - ymin)/ny
+
+# create histogram array - do not touch
+hist2d=ndarray(shape=(ny, nx))
+hist2d[:,:]=0;
+
+increment=1.0
+
+if(options.normalize == True):
+  increment = 1.  / float(size(data, 0)) / float(dx*dy)
+
+# loop over all points - do not change
+for v in data:
+    hist2d[min((v[1]-ymin)/iy*ny, ny-1), min((v[0]-xmin)/ix*nx, nx-1)]+=increment
+
+print(ymin,ymax,xmin,xmax)
+
+if(options.gpout != None):
+  file = open(options.gpout, 'w') 
+  for iiy in range(0,size(hist2d, 1)):
+    for iix in range(0,size(hist2d, 0)):
+      file.write(str(iix*dx + xmin) + " " + str(iiy*dy + ymin) + " " + str(hist2d[iiy,iix]) + "\n")
+    file.write("\n")
+  file.close()
+
+
+
+if(options.show):
+  # you can output the histogram if needed
+  # savetxt('/people/thnfs/homes/ruehle/hist2d.txt', hist2d)
+
+  # create color table for nicer output - might be changed if needed
+  cdict = {'red':   [(0.0,  1.0, 1.0),
+					(0.2/3.,  1.0, 1.0),
+					(1.0/3.,  1.0, 1.0),
+			(1.0,  0.0, 0.0)],
+
+		  'green':   [(0.0,  1.0, 1.0),
+					(0.2/3.,  1.0, 1.0),
+					(1.0/3.,  0.0, 0.0),
+			(1.0,  0.0, 0.0)],
+
+		  'blue':   [(0.0,  1.0, 1.0),
+					(0.2/3.,  0.0, 0.0),
+					(1.0/3.,  0.0, 0.0),
+			(1.0,  0.0, 0.0)]}
+
+  mymap = matplotlib.colors.LinearSegmentedColormap('my_colormap',cdict)
+
+
+  # display histogram - do not change
+  im=imshow(hist2d, origin='lower', aspect='auto', interpolation='bicubic',
+	cmap=mymap, extent=[xmin, xmax, ymin, ymax])
+  
+  colorbar(im)
+
+  # axis labels - adjust to your values, you can use latex code
+  xlabel(options.xlbl);
+  ylabel(options.ylbl);
+
+  # show the image
+  show()
