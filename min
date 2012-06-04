@@ -1,12 +1,5 @@
 #! /usr/bin/awk -f 
 BEGIN{
-	#Version check, use gawk only !
-	"awk --version" | getline version;
-	if ( version !~ /GNU Awk/)
-	{
-		print "#WARING: This is not gawk (GNU awk). Could cause problem!";
-	}
-	print "#This is min.awk 0.1 (20.08.07)";
 	if (ARGC>2)
 	{
 		print "#WARING: Average over multiple files!!";

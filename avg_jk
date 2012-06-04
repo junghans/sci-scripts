@@ -1,13 +1,6 @@
 #! /usr/bin/awk -f
-func isnum(x){return(x==x+0)}
+function isnum(x){return(x==x+0)}
 BEGIN{
-	#Version check, use gawk only !
-	"awk --version" | getline version;
-	if ( version !~ /GNU Awk/)
-	{
-		print "#WARING: This is not gawk (GNU awk). Could cause problem!";
-	}
-	print "#This is avg_jk 0.98 (10.01.07)";
 	if (ARGC>2)
 	{
 		print "#WARING: Average over multiple files!!";
