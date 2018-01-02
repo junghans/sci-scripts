@@ -1,4 +1,4 @@
-#Scripts for scientific purposes
+# Scripts for scientific purposes
 
 * `avg`: calculates the average of a series of numbers
 * `avg2`: like `avg` but print fluctuation instead of standard error
@@ -14,7 +14,7 @@
 * `min`: calculates the min of a series of numbers
 * `ravg`: calculates the running average of a series of numbers 
 
-##Issues
+## Issues
 
 Report bugs on the [github issues site](https://github.com/junghans/sci-scripts/issues)
 
